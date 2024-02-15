@@ -1,3 +1,6 @@
 package com.github.erlonprifsp.photos.model
 
-class PhotoList : ArrayList<PhotoListItem>()
+data class PhotoList(
+    val photos: List<Photo>,
+    val skip: Int
+)
