@@ -8,6 +8,6 @@ data class PhotoListItem(
     val url: String
 ){
     override fun toString(): String {
-        return title
+        return title // retorna somente a propriedade title
     }
 }
