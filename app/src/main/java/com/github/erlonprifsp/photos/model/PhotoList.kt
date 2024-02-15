@@ -1,6 +1,5 @@
 package com.github.erlonprifsp.photos.model
 
 data class PhotoList(
-    val photos: List<Photo>,
-    val skip: Int
+    val photos: List<Photo>
 )
