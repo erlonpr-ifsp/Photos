@@ -1,15 +1,22 @@
 package com.github.erlonprifsp.photos.ui
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.erlonprifsp.photos.R
 import com.github.erlonprifsp.photos.adapter.PhotoAdapter
+import com.github.erlonprifsp.photos.adapter.PhotoImageAdapter
 import com.github.erlonprifsp.photos.databinding.ActivityMainBinding
 import com.github.erlonprifsp.photos.model.PhotoList
 import com.github.erlonprifsp.photos.model.PhotoListItem
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -22,11 +29,13 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
     }
 
     private val photoList: MutableList<PhotoListItem> = mutableListOf() // data source
-
-
-
     private val photoAdapter: PhotoAdapter by lazy { // adapter
         PhotoAdapter(this, photoList)
+    }
+
+    private val photoImageList: MutableList<Bitmap> = mutableListOf()
+    private val photoImageAdapter: PhotoImageAdapter by lazy {
+        PhotoImageAdapter(this, photoImageList)
     }
 
     companion object {
@@ -46,7 +55,40 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
         })
 
         // spinner
-        amb.photosSpinner.adapter = photoAdapter
+        amb.photosSpinner.apply {
+            adapter = photoAdapter
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+
+                    /*
+                    val size = photoImageList.size
+                    photoImageList.clear()
+                    photoImageAdapter.notifyItemRangeRemoved(0, size)
+                    retrievePhotosImage(photoImageList[position])
+
+                    */
+
+                    val selectedPhoto = photoList[position]
+                    retrievePhotosImage(selectedPhoto)
+
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    // NSA
+                }
+            }
+        }
+
+        amb.photoImagesRv.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = photoImageAdapter
+        }
 
         retrievePhotos()
 
@@ -87,5 +129,39 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
 
     }.start()
 
+
+    private fun retrievePhotosImage(photo: PhotoListItem) = Thread {
+        val photoImageConnection = URL(photo.url).openConnection() as HttpURLConnection
+
+        try {
+            if (photoImageConnection.responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedInputStream(photoImageConnection.inputStream).let {
+                    val imageBitmap = BitmapFactory.decodeStream(it)
+                    runOnUiThread {
+                        photoImageList.clear()
+                        photoImageList.add(imageBitmap)
+                        photoImageAdapter.notifyDataSetChanged()
+                    }
+                }
+            } else {
+                runOnUiThread {
+                    Toast.makeText(this, getString(R.string.request_problem), Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        } catch (ioe: IOException) {
+            runOnUiThread {
+                Toast.makeText(this, getString(R.string.connection_failed), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        } catch (jse: JsonSyntaxException) {
+            runOnUiThread {
+                Toast.makeText(this, getString(R.string.response_problem), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        } finally {
+            photoImageConnection.disconnect()
+        }
+    }.start()
 
 }
