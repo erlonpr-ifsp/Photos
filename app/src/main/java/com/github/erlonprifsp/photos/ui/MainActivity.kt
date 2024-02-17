@@ -72,6 +72,8 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
                     val selectedPhoto = photoList[position]
                     retrievePhotosImage(selectedPhoto.url, amb.photoImageView)
 
+                    retrievePhotosImage(selectedPhoto.thumbnailUrl, amb.thumbnailImageView)
+
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
