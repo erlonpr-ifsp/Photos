@@ -12,7 +12,6 @@ import com.android.volley.toolbox.ImageRequest
 import com.android.volley.toolbox.Volley
 import com.github.erlonprifsp.photos.R
 import com.github.erlonprifsp.photos.adapter.PhotoAdapter
-import com.github.erlonprifsp.photos.adapter.PhotoImageAdapter
 import com.github.erlonprifsp.photos.databinding.ActivityMainBinding
 import com.github.erlonprifsp.photos.model.PhotoList
 import com.github.erlonprifsp.photos.model.PhotoListItem
@@ -34,10 +33,6 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
         PhotoAdapter(this, photoList)
     }
 
-    private val photoImageList: MutableList<Bitmap> = mutableListOf()
-    private val photoImageAdapter: PhotoImageAdapter by lazy {
-        PhotoImageAdapter(this, photoImageList)
-    }
 
     private val requestQueue by lazy { Volley.newRequestQueue(this) }
 
@@ -77,13 +72,11 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    // NSA
+                    // não se aplica
                 }
             }
         }
-
         retrievePhotos()
-
     }
 
     private fun retrievePhotos() = Thread {
@@ -93,7 +86,6 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
             if (photosConnection.responseCode == HttpURLConnection.HTTP_OK) {
                 InputStreamReader(photosConnection.inputStream).readText().let {
                     runOnUiThread {
-                        // photoAdapter.addAll(Gson().fromJson(it, PhotoList::class.java).photos)
 
                         val photoList = Gson().fromJson(it, PhotoList::class.java)
                         photoAdapter.addAll(photoList)  // Adiciona diretamente a instância de PhotoList ao adapter
@@ -137,6 +129,4 @@ class MainActivity : AppCompatActivity() { // classe MainActivity herda da class
 
         requestQueue.add(imageRequest)
     }
-
-
 }
